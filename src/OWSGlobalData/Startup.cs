@@ -75,7 +75,7 @@ namespace OWSGlobalData
                 c.IncludeXmlComments(filePath);
             });
 
-            services.Configure<OWSData.Models.StorageOptions>(Configuration.GetSection(OWSData.Models.StorageOptions.SectionName));
+            services.Configure<OWSShared.Options.StorageOptions>(Configuration.GetSection(OWSShared.Options.StorageOptions.SectionName));
             services.Configure<OWSShared.Options.APIPathOptions>(Configuration.GetSection(OWSShared.Options.APIPathOptions.SectionName));
             services.Configure<OWSShared.Options.RabbitMQOptions>(Configuration.GetSection(OWSShared.Options.RabbitMQOptions.SectionName));
 
@@ -133,13 +133,13 @@ namespace OWSGlobalData
                 switch (dbBackend)
                 {
                     case "postgres":
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.Postgres.GlobalDataRepository>(Lifestyle.Scoped);
+                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.Postgres.GlobalDataRepository>(Lifestyle.Singleton);
                         break;
                     case "mysql":
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MySQL.GlobalDataRepository>(Lifestyle.Scoped);
+                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MySQL.GlobalDataRepository>(Lifestyle.Singleton);
                         break;
                     default: // Default to MSSQL
-                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MSSQL.GlobalDataRepository>(Lifestyle.Scoped);
+                        container.Register<IGlobalDataRepository, OWSData.Repositories.Implementations.MSSQL.GlobalDataRepository>(Lifestyle.Singleton);
                         break;
                 }
             }

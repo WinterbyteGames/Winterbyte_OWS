@@ -14,6 +14,7 @@ using OWSData.Models;
 using OWSData.Models.Composites;
 using OWSData.Models.Tables;
 using OWSData.SQL;
+using OWSShared.Options;
 
 namespace OWSData.Repositories.Implementations.MSSQL
 {
@@ -191,6 +192,24 @@ namespace OWSData.Repositories.Implementations.MSSQL
             }
 
             return outputCharacter.FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<DefaultCustomData>> GetDefaultCustomCharacterData(Guid customerGUID, string defaultSetName)
+        {
+            IEnumerable<DefaultCustomData> outputDefaultCustomCharacterDataRows;
+
+            using (Connection)
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@CustomerGUID", customerGUID);
+                parameters.Add("@DefaultSetName", defaultSetName);
+
+                outputDefaultCustomCharacterDataRows = await Connection.QueryAsync<DefaultCustomData>(GenericQueries.GetDefaultCustomCharacterDataByDefaultSetName,
+                    parameters,
+                    commandType: CommandType.Text);
+            }
+
+            return outputDefaultCustomCharacterDataRows;
         }
 
         public async Task<IEnumerable<CustomCharacterData>> GetCustomCharacterData(Guid customerGUID, string characterName)
@@ -454,10 +473,7 @@ namespace OWSData.Repositories.Implementations.MSSQL
 
         public async Task UpdatePosition(Guid customerGUID, string characterName, string mapName, float X, float Y, float Z, float RX, float RY, float RZ)
         {
-            IDbConnection conn = Connection;
-            conn.Open();
-            using IDbTransaction transaction = conn.BeginTransaction();
-            try
+            using (Connection)
             {
                 var p = new DynamicParameters();
                 p.Add("@CustomerGUID", customerGUID);
@@ -486,13 +502,6 @@ namespace OWSData.Repositories.Implementations.MSSQL
                 await Connection.ExecuteAsync(MSSQLQueries.UpdateUserLastAccess,
                     p,
                     commandType: CommandType.Text);
-
-                transaction.Commit();
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw new Exception("Database Exception in UpdatePosition!");
             }
         }
 
